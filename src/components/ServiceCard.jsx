@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 
 export default function ServiceCard({ service }) {
-  const { title, slug, tagline, description, pricePerHour, rating, totalReviews, icon, badge, image, features } = service;
+  const {_id, title, slug, tagline, description, pricePerHour, rating, totalReviews, icon, badge, image, features } = service;
 
   return (
     <div className="group bg-white rounded-3xl overflow-hidden border border-purple-100 shadow-xl shadow-purple-200 hover:shadow-2xl hover:shadow-purple-300 hover:-translate-y-2 transition-all duration-300 max-w-150 mt-10 mb-10 w-full mx-auto">
@@ -65,7 +65,7 @@ export default function ServiceCard({ service }) {
         </ul>
 
         {/* Button */}
-        <Link href={`/service/${slug}`} className="mt-2">
+        <Link href={`/services/${_id}`} className="mt-2">
           <button className="w-full py-3 rounded-2xl bg-purple-300 hover:bg-purple-400 text-black font-extrabold text-sm transition-all shadow-md shadow-purple-200 hover:shadow-lg hover:shadow-purple-300">
             See Details →
           </button>
