@@ -3,8 +3,18 @@
 import Link from "next/link";
 import React from "react";
 import NavLink from "./buttons/NavLink";
+import { useSession, signOut } from "next-auth/react";
 
 const Navbar = () => {
+
+  const { data: session, status } = useSession();
+
+  const handleLogout = async () => {
+    await signOut({
+      callbackUrl: "/",
+    });
+  };
+
   return (
     <div className="w-full bg-base-100 shadow-sm">
 
@@ -50,12 +60,43 @@ const Navbar = () => {
 
 
         {/* RIGHT */}
-        <div className="navbar-end">
-          <button className="btn btn-primary btn-outline font-extrabold rounded-xl text-black">
+        <div className="navbar-end gap-3">
+
+          {status === "loading" ? (
+
+            <button className="btn btn-primary btn-outline rounded-xl">
+              Loading...
+            </button>
+
+          ) : session ? (
+
+            <>
+
+              {/* Show User Name */}
+              <span className="font-bold text-purple-600 hidden sm:block">
+                {session.user.name}
+              </span>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="btn btn-primary btn-outline font-extrabold rounded-xl text-black"
+              >
+                Logout
+              </button>
+
+            </>
+
+          ) : (
+
             <Link href="/login">
-              Login
+              <button className="btn btn-primary btn-outline font-extrabold rounded-xl text-black">
+                Login
+              </button>
             </Link>
-          </button>
+
+          )}
+
         </div>
 
       </div>
