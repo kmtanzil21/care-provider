@@ -4,12 +4,18 @@ import { dbConnect } from "@/lib/dbConnect";
 import { ObjectId } from "mongodb";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { sendBookingEmail } from "@/lib/sendEmail"; // import
 
-export const createBooking = async ({ serviceId, durationType, durationValue, location }) => {
+export const createBooking = async ({
+  serviceId,
+  durationType,
+  durationValue,
+  location,
+}) => {
 
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) {
+  if (!session) {
     throw new Error("Unauthorized");
   }
 
@@ -20,51 +26,65 @@ export const createBooking = async ({ serviceId, durationType, durationValue, lo
     _id: new ObjectId(serviceId),
   });
 
-  if (!service) {
-    throw new Error("Service not found");
-  }
-
   const duration = Number(durationValue);
-
-  if (!duration || duration <= 0) {
-    throw new Error("Invalid duration");
-  }
 
   let totalCost = 0;
 
   if (durationType === "hour") {
-    totalCost = duration * Number(service.pricePerHour || 0);
-  } else if (durationType === "day") {
-    totalCost = duration * Number(service.pricePerDay || 0);
+    totalCost = duration * service.pricePerHour;
   } else {
-    throw new Error("Invalid duration type");
+    totalCost = duration * service.pricePerDay;
   }
 
-  const doc = {
+  const bookingDoc = {
+
     userId: new ObjectId(session.user.id),
+
     userEmail: session.user.email,
 
     serviceId: new ObjectId(serviceId),
+
     serviceTitle: service.title,
-    serviceSlug: service.slug,
 
     durationType,
+
     durationValue: duration,
 
-    location, // {division,district,city,area,address}
+    location,
 
     totalCost,
-    currency: service.currency || "BDT",
 
     status: "Pending",
 
     createdAt: new Date(),
+
   };
 
-  const result = await bookingsCol.insertOne(doc);
+  const result = await bookingsCol.insertOne(bookingDoc);
+
+  // SEND EMAIL HERE
+  await sendBookingEmail({
+
+    to: session.user.email,
+
+    serviceTitle: service.title,
+
+    durationType,
+
+    durationValue: duration,
+
+    totalCost,
+
+    location,
+
+  });
 
   return {
+
     insertedId: result.insertedId.toString(),
+
     totalCost,
+
   };
+
 };
